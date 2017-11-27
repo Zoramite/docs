@@ -16,6 +16,10 @@ jobs:
             - grow-cache-{{ .Branch }}-{{ checksum "package.json" }}
 
       - run:
+          name: Firebase Install
+          command: npm install firebase-tools
+
+      - run:
           name: Grow Install
           command: grow install
 
