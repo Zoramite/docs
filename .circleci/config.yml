@@ -7,6 +7,10 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: Install Packages
+          command: "apt-get update && apt-get install -y libfontconfig"
+
       - restore_cache:
           keys:
             - grow-cache-{{ .Branch }}-{{ checksum "package.json" }}
