@@ -29,12 +29,13 @@ jobs:
             - node_modules
 
       - run:
-          name: Master Firebase
-          command: firebase use staging
+          name: Firebase Production
+          command: 'if [ "${TRAVIS_BRANCH}" = "production" ]; then firebase use production; fi'
 
       - run:
-          name: Master Firebase
-          command: 'if [ "${TRAVIS_BRANCH}" = "master" ]; then firebase use staging; fi'
+          name: Firebase Staging
+          command: firebase use staging
+          # command: 'if [ "${TRAVIS_BRANCH}" = "master" ]; then firebase use staging; fi'
 
       - run:
           name: Production Firebase
