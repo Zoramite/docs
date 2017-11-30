@@ -11,6 +11,10 @@ jobs:
           name: Install Packages
           command: "apt-get update && apt-get install -y libfontconfig"
 
+      - run:
+          name: Yarn cache directory
+          command: yarn cache dir
+
       - restore_cache:
           keys:
             - node-cache-{{ .Branch }}-{{ checksum "package.json" }}
