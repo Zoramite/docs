@@ -29,16 +29,20 @@ jobs:
             - node_modules
 
       - run:
-          name: Master Firebase
-          command: ./node_modules/.bin/firebase use staging
+          name: Add NPM bin to PATH
+          command: echo 'export PATH=$(npm bin):$PATH' >> $BASH_ENV
 
       - run:
           name: Master Firebase
-          command: 'if [ "${TRAVIS_BRANCH}" = "master" ]; then ./node_modules/.bin/firebase use staging; fi'
+          command: firebase use staging
+
+      - run:
+          name: Master Firebase
+          command: 'if [ "${TRAVIS_BRANCH}" = "master" ]; then firebase use staging; fi'
 
       - run:
           name: Production Firebase
-          command: 'if [ "${TRAVIS_BRANCH}" = "production" ]; then ./node_modules/.bin/firebase use production; fi'
+          command: 'if [ "${TRAVIS_BRANCH}" = "production" ]; then firebase use production; fi'
 
       - run:
           name: Grow Build
@@ -46,7 +50,7 @@ jobs:
 
       - run:
           name: Deploy
-          command: ./node_modules/.bin/firebase deploy --token "$FIREBASE_TOKEN" --non-interactive
+          command: firebase deploy --token "$FIREBASE_TOKEN" --non-interactive
 
 workflows:
   version: 2
