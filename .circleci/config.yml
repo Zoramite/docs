@@ -30,15 +30,15 @@ jobs:
 
       - run:
           name: Master Firebase
-          command: ./node_modules/firebase-tools/bin/firebase use staging
+          command: ./node_modules/.bin/firebase use staging
 
       - run:
           name: Master Firebase
-          command: 'if [ "${TRAVIS_BRANCH}" = "master" ]; then ./node_modules/firebase-tools/bin/firebase use staging; fi'
+          command: 'if [ "${TRAVIS_BRANCH}" = "master" ]; then ./node_modules/.bin/firebase use staging; fi'
 
       - run:
           name: Production Firebase
-          command: 'if [ "${TRAVIS_BRANCH}" = "production" ]; then ./node_modules/firebase-tools/bin/firebase use production; fi'
+          command: 'if [ "${TRAVIS_BRANCH}" = "production" ]; then ./node_modules/.bin/firebase use production; fi'
 
       - run:
           name: Grow Build
@@ -46,7 +46,7 @@ jobs:
 
       - run:
           name: Deploy
-          command: ./node_modules/firebase-tools/bin/firebase deploy --token "$FIREBASE_TOKEN" --non-interactive
+          command: ./node_modules/.bin/firebase deploy --token "$FIREBASE_TOKEN" --non-interactive
 
 workflows:
   version: 2
