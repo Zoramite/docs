@@ -32,14 +32,14 @@ sh_firebase_staging: &sh_firebase_staging
   command: firebase use staging
   # command: 'if [ "${CIRCLE_BRANCH}" = "master" ]; then firebase use staging; fi'
 
-sh_firebase_deploy: &sh_firebase_deploy
+sh_cleanup_collision: &sh_cleanup_collision
+  name: Cleanup Examples
+  command: rm -fr ./build/examples
 
 sh_persist: &sh_persist
   root: ~/grow
   paths:
     - build/
-    - .firebaserc
-    - firebase.json
 
 jobs:
   # Locales: None ar de en
@@ -68,6 +68,12 @@ jobs:
           command: grow build --re-route -nt --locale None --locale ar --locale de --locale en
       - persist_to_workspace:
           <<: *sh_persist
+      # Only in one build to prevent duplicates.
+      - persist_to_workspace:
+          root: ~/grow
+          paths:
+            - .firebaserc
+            - firebase.json
 
   # Locales: es fr id
   build-b:
@@ -93,6 +99,9 @@ jobs:
       - run:
           name: Grow Build
           command: grow build --re-route -nt --locale es --locale fr --locale id
+      # Prevent collision with other builds.
+      - run:
+          <<: *sh_cleanup_collision
       - persist_to_workspace:
           <<: *sh_persist
 
@@ -120,6 +129,9 @@ jobs:
       - run:
           name: Grow Build
           command: grow build --re-route -nt --locale it --locale ja --locale ko --locale pt_BR
+      # Prevent collision with other builds.
+      - run:
+          <<: *sh_cleanup_collision
       - persist_to_workspace:
           <<: *sh_persist
 
@@ -147,6 +159,9 @@ jobs:
       - run:
           name: Grow Build
           command: grow build --re-route -nt --locale ru --locale tr --locale zh_CN
+      # Prevent collision with other builds.
+      - run:
+          <<: *sh_cleanup_collision
       - persist_to_workspace:
           <<: *sh_persist
 
@@ -168,23 +183,26 @@ jobs:
       #     name: Deploy
       #     command: firebase deploy --token "$FIREBASE_TOKEN" --non-interactive
 
+filter_branches: &filter_branches
+  filters:
+    branches:
+      only:
+      - production
+      - master
+
 workflows:
   version: 2
   build_and_deploy:
     jobs:
+      # 4 groups to match the circleci concurrent build count.
       - build-a
       - build-b
       - build-c
       - build-d
       - deploy:
+          # <<: *filter_branches
           requires:
           - build-a
           - build-b
           - build-c
           - build-d
-      # - build-a:
-      #     filters:
-      #       branches:
-      #         only:
-      #         - production
-      #         - master
