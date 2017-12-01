@@ -65,7 +65,7 @@ jobs:
           <<: *sh_firebase_staging
       - run:
           name: Grow Build
-          command: grow build --locale None --locale ar --locale de --locale en
+          command: grow build --re-route --locale None --locale ar --locale de --locale en
       - persist_to_workspace:
           <<: *sh_persist
 
@@ -92,7 +92,7 @@ jobs:
           <<: *sh_firebase_staging
       - run:
           name: Grow Build
-          command: grow build --locale es --locale fr --locale id
+          command: grow build --re-route --locale es --locale fr --locale id
       - persist_to_workspace:
           <<: *sh_persist
 
@@ -119,7 +119,7 @@ jobs:
           <<: *sh_firebase_staging
       - run:
           name: Grow Build
-          command: grow build --locale it --locale ja --locale ko --locale pt_BR
+          command: grow build --re-route --locale it --locale ja --locale ko --locale pt_BR
       - persist_to_workspace:
           <<: *sh_persist
 
@@ -146,7 +146,7 @@ jobs:
           <<: *sh_firebase_staging
       - run:
           name: Grow Build
-          command: grow build --locale ru --locale tr --locale zh_CN
+          command: grow build --re-route --locale ru --locale tr --locale zh_CN
       - persist_to_workspace:
           <<: *sh_persist
 
@@ -160,6 +160,9 @@ jobs:
       - run:
           name: Build Files
           command: ls -alR build/
+      - run:
+          name: Build Count
+          command: find ./build -type f | wc -l
       # Wait to deploy until verified.
       # - run:
       #     name: Deploy
