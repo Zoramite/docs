@@ -33,8 +33,8 @@ sh_firebase_staging: &sh_firebase_staging
   # command: 'if [ "${CIRCLE_BRANCH}" = "master" ]; then firebase use staging; fi'
 
 sh_cleanup_collision: &sh_cleanup_collision
-  name: Cleanup Examples
-  command: rm -fr ./build/examples
+  name: Cleanup Collisions
+  command: rm -fr ./build/examples && rm -fr ./build/.grow/
 
 sh_persist: &sh_persist
   root: ~/grow
