@@ -1,61 +1,185 @@
 version: 2
+
+# Shared build steps.
+sh_install_pkg: &sh_install_pkg
+  name: Install Packages
+  command: "apt-get update && apt-get install -y libfontconfig"
+
+sh_restore_cache: &sh_restore_cache
+  keys:
+    - cache-{{ .Branch }}-{{ checksum "package.json" }}
+
+sh_install_fb: &sh_install_fb
+  name: Firebase Install
+  command: yarn global add firebase-tools
+
+sh_install_grow: &sh_install_grow
+  name: Grow Install
+  command: grow install
+
+sh_save_cache: &sh_save_cache
+  key: cache-{{ .Branch }}-{{ checksum "package.json" }}
+  paths:
+    - node_modules
+    - /usr/local/share/.cache/yarn/v1
+
+sh_firebase_prod: &sh_firebase_prod
+  name: Firebase Production
+  command: 'if [ "${CIRCLE_BRANCH}" = "production" ]; then firebase use production; fi'
+
+sh_firebase_staging: &sh_firebase_staging
+  name: Firebase Staging
+  command: firebase use staging
+  # command: 'if [ "${CIRCLE_BRANCH}" = "master" ]; then firebase use staging; fi'
+
+sh_firebase_deploy: &sh_firebase_deploy
+
+sh_persist: &sh_persist
+  root: ~/grow
+  paths:
+    - build/
+    - .firebaserc
+    - firebase.json
+
 jobs:
-  build:
+  # Locales: None ar de en
+  build-a:
     working_directory: ~/grow
     docker:
       - image: grow/base:master
     steps:
       - checkout
-
       - run:
-          name: Install Packages
-          command: "apt-get update && apt-get install -y libfontconfig"
-
+          <<: *sh_install_pkg
       - restore_cache:
-          keys:
-            - cache-{{ .Branch }}-{{ checksum "package.json" }}
-
+          <<: *sh_restore_cache
       - run:
-          name: Firebase Install
-          command: yarn global add firebase-tools
-
+          <<: *sh_install_fb
       - run:
-          name: Grow Install
-          command: grow install
-
+          <<: *sh_install_grow
       - save_cache:
-          key: cache-{{ .Branch }}-{{ checksum "package.json" }}
-          paths:
-            - node_modules
-            - /usr/local/share/.cache/yarn/v1
-
+          <<: *sh_save_cache
       - run:
-          name: Firebase Production
-          command: 'if [ "${TRAVIS_BRANCH}" = "production" ]; then firebase use production; fi'
-
+          <<: *sh_firebase_prod
       - run:
-          name: Firebase Staging
-          command: firebase use staging
-          # command: 'if [ "${TRAVIS_BRANCH}" = "master" ]; then firebase use staging; fi'
-
-      - run:
-          name: Production Firebase
-          command: 'if [ "${TRAVIS_BRANCH}" = "production" ]; then firebase use production; fi'
-
+          <<: *sh_firebase_staging
       - run:
           name: Grow Build
-          command: grow build
+          command: grow build --locale None --locale ar --locale de --locale en
+      - persist_to_workspace:
+          <<: *sh_persist
 
+  # Locales: es fr id
+  build-b:
+    working_directory: ~/grow
+    docker:
+      - image: grow/base:master
+    steps:
+      - checkout
       - run:
-          name: Deploy
-          command: firebase deploy --token "$FIREBASE_TOKEN" --non-interactive
+          <<: *sh_install_pkg
+      - restore_cache:
+          <<: *sh_restore_cache
+      - run:
+          <<: *sh_install_fb
+      - run:
+          <<: *sh_install_grow
+      - save_cache:
+          <<: *sh_save_cache
+      - run:
+          <<: *sh_firebase_prod
+      - run:
+          <<: *sh_firebase_staging
+      - run:
+          name: Grow Build
+          command: grow build --locale es --locale fr --locale id
+      - persist_to_workspace:
+          <<: *sh_persist
+
+  # Locales: it ja ko pt_BR
+  build-c:
+    working_directory: ~/grow
+    docker:
+      - image: grow/base:master
+    steps:
+      - checkout
+      - run:
+          <<: *sh_install_pkg
+      - restore_cache:
+          <<: *sh_restore_cache
+      - run:
+          <<: *sh_install_fb
+      - run:
+          <<: *sh_install_grow
+      - save_cache:
+          <<: *sh_save_cache
+      - run:
+          <<: *sh_firebase_prod
+      - run:
+          <<: *sh_firebase_staging
+      - run:
+          name: Grow Build
+          command: grow build --locale it --locale ja --locale ko --locale pt_BR
+      - persist_to_workspace:
+          <<: *sh_persist
+
+  # Locales: ru tr zh_CN
+  build-d:
+    working_directory: ~/grow
+    docker:
+      - image: grow/base:master
+    steps:
+      - checkout
+      - run:
+          <<: *sh_install_pkg
+      - restore_cache:
+          <<: *sh_restore_cache
+      - run:
+          <<: *sh_install_fb
+      - run:
+          <<: *sh_install_grow
+      - save_cache:
+          <<: *sh_save_cache
+      - run:
+          <<: *sh_firebase_prod
+      - run:
+          <<: *sh_firebase_staging
+      - run:
+          name: Grow Build
+          command: grow build --locale ru --locale tr --locale zh_CN
+      - persist_to_workspace:
+          <<: *sh_persist
+
+  deploy:
+    working_directory: ~/grow
+    docker:
+      - image: grow/base:master
+    steps:
+      - attach_workspace:
+          at: ~/grow
+      - run:
+          name: Build Files
+          command: ls -alR build/
+      # Wait to deploy until verified.
+      # - run:
+      #     name: Deploy
+      #     command: firebase deploy --token "$FIREBASE_TOKEN" --non-interactive
 
 workflows:
   version: 2
   build_and_deploy:
     jobs:
-      - build
-      # - build:
+      - build-a
+      - build-b
+      - build-c
+      - build-d
+      - deploy:
+          requires:
+          - build-a
+          - build-b
+          - build-c
+          - build-d
+      # - build-a:
       #     filters:
       #       branches:
       #         only:
